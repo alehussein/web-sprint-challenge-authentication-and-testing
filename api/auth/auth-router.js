@@ -1,7 +1,21 @@
 const router = require('express').Router();
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+const User = require('../users/user-modules');
+const { checkUsernameAvailability, validateRegistrationData,checkUsernameExists } = require('./auth-middleware');
+const secrets = require('../secrets');
 
-router.post('/register', (req, res) => {
-  res.end('implement register, please!');
+
+router.post('/register', validateRegistrationData, checkUsernameAvailability, async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+    const hash = bcrypt.hashSync(password, 8);
+    await User.add(username, hash);
+    res.status(201).json({ message: 'User registered successfully' });
+  } catch (err) {
+    next(err)
+  }
+});
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
@@ -27,10 +41,18 @@ router.post('/register', (req, res) => {
     4- On FAILED registration due to the `username` being taken,
       the response body should include a string exactly as follows: "username taken".
   */
-});
 
-router.post('/login', (req, res) => {
-  res.end('implement login, please!');
+
+router.post('/login', checkUsernameExists, validateRegistrationData, (req, res, next) => {
+  if(bcrypt.compareSync(req.body.password, req.user.password)){
+    const token = generateToken(req.user)
+    res.json({
+      message:`${req.user.username} is back`,
+      token,
+    })
+  }else{
+    next({ status: 401, message: "Invalid credentials"})
+  }
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
@@ -55,5 +77,16 @@ router.post('/login', (req, res) => {
       the response body should include a string exactly as follows: "invalid credentials".
   */
 });
+
+function generateToken(user){
+  const payload = {
+    subject: user.id,
+    username: user.username,
+  };
+  const options = {
+    expiresIn: '1d',
+  }
+  return jwt.sign(payload, secrets.JWT_SECRET, options)
+}
 
 module.exports = router;
