@@ -22,7 +22,7 @@ const validateRegistrationData = (req, res, next) => {
 const checkUsernameExists = async (req, res, next) => {
   try {
     const { username, password } = req.body;
-    const user = await User.findBy({ username }).first()
+    const user = await User.findBy({ username })
 
     if (!user || !bcrypt.compareSync(password, user.password)) {
       return res.status(401).json({ message: "Invalid credentials" });

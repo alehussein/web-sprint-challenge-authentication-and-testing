@@ -10,12 +10,14 @@ router.post('/register', validateRegistrationData, checkUsernameAvailability, as
   try {
     const { username, password } = req.body;
     const hash = bcrypt.hashSync(password, 8);
-    await User.add(username, hash);
-    res.status(201).json({ message: 'User registered successfully' });
+    const newUser = await User.add({username, password:hash});
+    res.status(201).json(newUser);
   } catch (err) {
     next(err)
   }
 });
+
+
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
@@ -42,17 +44,18 @@ router.post('/register', validateRegistrationData, checkUsernameAvailability, as
       the response body should include a string exactly as follows: "username taken".
   */
 
-
 router.post('/login', checkUsernameExists, validateRegistrationData, (req, res, next) => {
-  if(bcrypt.compareSync(req.body.password, req.user.password)){
+  if (bcrypt.compareSync(req.body.password, req.user.password)) {
     const token = generateToken(req.user)
     res.json({
-      message:`${req.user.username} is back`,
+      message: `welcome, ${req.user.username}`,
       token,
     })
-  }else{
-    next({ status: 401, message: "Invalid credentials"})
+  } else {
+    next({ status: 401, message: "Invalid credentials" })
   }
+});  
+
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
@@ -76,7 +79,7 @@ router.post('/login', checkUsernameExists, validateRegistrationData, (req, res, 
     4- On FAILED login due to `username` not existing in the db, or `password` being incorrect,
       the response body should include a string exactly as follows: "invalid credentials".
   */
-});
+
 
 function generateToken(user){
   const payload = {

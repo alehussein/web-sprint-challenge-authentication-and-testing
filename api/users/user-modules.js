@@ -1,10 +1,10 @@
 const db = require('../../data/dbConfig')
 
 async function add(user) {
-    const [id] = await db('users').insert(user)
-  
-    return findById(id)
-  }
+  const [id] = await db('users').insert(user)
+
+  return findById(id)
+}
 
   function findById(id) {
     return db('users')
@@ -12,8 +12,9 @@ async function add(user) {
       .first()
   }
 
-  function findBy(filter) {
-    return db('users').where(filter)
+  async function findBy(filter) {
+    const [user] = await db('users').where(filter)
+    return user
   }
 
   function find() {
