@@ -44,7 +44,7 @@ router.post('/register', validateRegistrationData, checkUsernameAvailability, as
       the response body should include a string exactly as follows: "username taken".
   */
 
-router.post('/login', checkUsernameExists, validateRegistrationData, (req, res, next) => {
+router.post('/login',validateRegistrationData,checkUsernameExists, (req, res, next) => {
   if (bcrypt.compareSync(req.body.password, req.user.password)) {
     const token = generateToken(req.user)
     res.json({
